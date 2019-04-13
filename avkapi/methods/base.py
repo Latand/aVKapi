@@ -27,11 +27,12 @@ class BaseMethod:
         :type parameters: dict
         :return:
         """
+        parameters.pop("self")
         parameters['access_token'] = self._access_token
         parameters['v'] = self._api_version
         p = {k: v for k, v in parameters.items() if v is not None}
         link = f'https://api.vk.com/method/{method_name}'
-
+        print(parameters)
         async with self._session.post(link, params=p) as resp:
             status = resp.status
             text = await resp.text()

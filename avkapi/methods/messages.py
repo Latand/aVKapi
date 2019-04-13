@@ -45,7 +45,8 @@ class Messages(BaseMethod):
         :param title: название беседы
         :return: После успешного выполнения возвращает идентификатор созданного чата (chat_id).
         """
-        user_ids = ",".join(user_ids)
+        if user_ids:
+            user_ids = ",".join(user_ids)
 
         result = await self._api_request(method_name="messages.createChat", parameters=locals())
         return result
@@ -63,8 +64,8 @@ class Messages(BaseMethod):
         (если с момента отправки сообщения прошло не более 24 часов ).
         :return:
         """
-
-        user_ids = ",".join(message_ids)
+        if message_ids:
+            message_ids = ",".join(message_ids)
         spam = int(spam)
         delete_for_all = int(delete_for_all)
 
@@ -179,7 +180,8 @@ class Messages(BaseMethod):
         содержащий число результатов в поле count и массив объектов, описывающих сообщения, в поле items.
         """
         extended = int(extended)
-        conversation_message_ids = ",".join(conversation_message_ids)
+        if conversation_message_ids:
+            conversation_message_ids = ",".join(conversation_message_ids)
         fields = ",".join(fields)
 
         result = await self._api_request(method_name="messages.getByConversationMessageId", parameters=locals())
@@ -202,7 +204,8 @@ class Messages(BaseMethod):
         содержащий число результатов в поле count и массив объектов, описывающих сообщения, в поле items.
         """
         extended = int(extended)
-        fields = ",".join(fields)
+        if fields:
+            fields = ",".join(fields)
 
         result = await self._api_request(method_name="messages.getById", parameters=locals())
         return result
@@ -234,8 +237,10 @@ class Messages(BaseMethod):
                  Если был задан параметр fields, поле users содержит список объектов пользователей с
                  дополнительным полем invited_by, содержащим идентификатор пользователя, пригласившего в беседу.
         """
-        chat_ids = ",".join(chat_ids)
-        fields = ",".join(fields)
+        if chat_ids:
+            chat_ids = ",".join(chat_ids)
+        if fields:
+            fields = ",".join(fields)
 
         result = await self._api_request(method_name="messages.getChat", parameters=locals())
         return result
@@ -251,7 +256,8 @@ class Messages(BaseMethod):
         :return: Возвращает объект, который содержит следующие поля:
         preview object, profiles (array), groups (array), emails (array)
         """
-        fields = ",".join(fields)
+        if fields:
+            fields = ",".join(fields)
 
         result = await self._api_request(method_name="messages.getChatPreview", parameters=locals())
         return result
@@ -304,10 +310,10 @@ class Messages(BaseMethod):
         :param dont_parse_links: 1 — не создавать сниппет ссылки из сообщения
         :return:
         """
-
-        user_ids = ",".join(user_ids)
-        forward_messages = ",".join(forward_messages)
+        if user_ids:
+            user_ids = ",".join(user_ids)
+        if forward_messages:
+            forward_messages = ",".join(forward_messages)
         dont_parse_links = int(dont_parse_links)
-
         result = await self._api_request(method_name='messages.send', parameters=locals())
         return result
