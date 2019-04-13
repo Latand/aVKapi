@@ -1,5 +1,15 @@
 import logging
+from typing import TypeVar
+import io
+
 logger = logging.getLogger(__name__)
+
+# Binding of builtin types
+InputFile = TypeVar('InputFile', 'InputFile', io.BytesIO, io.FileIO, str)
+String = TypeVar('String', bound=str)
+Integer = TypeVar('Integer', bound=int)
+Float = TypeVar('Float', bound=float)
+Boolean = TypeVar('Boolean', bound=bool)
 
 
 class BaseMethod:
