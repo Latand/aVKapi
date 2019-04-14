@@ -3,6 +3,7 @@ from .base import BaseMethod
 import typing
 from ..types.attachment import Attachment
 from ..types.keyboard import Keyboard
+from ..utils.payload import generate_payload, prepare_arg
 
 
 class Messages(BaseMethod):
@@ -18,8 +19,8 @@ class Messages(BaseMethod):
         :param user_id: идентификатор пользователя, которого необходимо включить в беседу
         :return: 1
         """
-
-        result = await self._api_request(method_name="messages.addChatUser", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.addChatUser", parameters=parameters)
         return result
 
     async def allow_messages_from_group(self, group_id: typing.Union[base.Integer, base.String],
@@ -32,8 +33,8 @@ class Messages(BaseMethod):
         Его значение будет возвращено в событии message_allow Callback API.
         :return: 1
         """
-
-        result = await self._api_request(method_name="messages.allowMessagesFromGroup", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.allowMessagesFromGroup", parameters=parameters)
         return result
 
     async def create_chat(self, user_ids: typing.Union[typing.List, typing.Tuple],
@@ -47,8 +48,8 @@ class Messages(BaseMethod):
         """
         if user_ids:
             user_ids = ",".join(user_ids)
-
-        result = await self._api_request(method_name="messages.createChat", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.createChat", parameters=parameters)
         return result
 
     async def delete(self, message_ids: typing.Union[typing.List, typing.Tuple],
@@ -68,8 +69,8 @@ class Messages(BaseMethod):
             message_ids = ",".join(message_ids)
         spam = int(spam)
         delete_for_all = int(delete_for_all)
-
-        result = await self._api_request(method_name="messages.delete", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.delete", parameters=parameters)
         return result
 
     async def delete_chat_photo(self, chat_id: typing.Union[base.Integer, base.String],
@@ -82,8 +83,8 @@ class Messages(BaseMethod):
         message_id — идентификатор отправленного системного сообщения;
         chat — объект мультидиалога.
         """
-
-        result = await self._api_request(method_name="messages.deleteChatPhoto", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.deleteChatPhoto", parameters=parameters)
         return result
 
     async def delete_conversation(self, user_id: typing.Union[base.Integer, base.String],
@@ -105,8 +106,8 @@ class Messages(BaseMethod):
         """
         if count > 10000:
             count = 10000
-
-        result = await self._api_request(method_name="messages.deleteConversation", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.deleteConversation", parameters=parameters)
         return result
 
     async def deny_messages_from_group(self, group_id: typing.Union[base.Integer, base.String]) -> int:
@@ -115,8 +116,8 @@ class Messages(BaseMethod):
         :param group_id: идентификатор сообщества
         :return:
         """
-
-        result = await self._api_request(method_name="messages.denyMessagesFromGroup", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.denyMessagesFromGroup", parameters=parameters)
         return result
 
     async def edit(self, peer_id: typing.Union[base.Integer, base.String],
@@ -148,8 +149,8 @@ class Messages(BaseMethod):
         dont_parse_links = int(dont_parse_links)
         if not message and not attachment:
             raise TypeError("missing 1 required positional argument: message or attachment")
-
-        result = await self._api_request(method_name="messages.edit", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.edit", parameters=parameters)
         return result
 
     async def edit_chat(self, chat_id: typing.Union[base.Integer, base.String],
@@ -160,8 +161,8 @@ class Messages(BaseMethod):
         :param title: новое название для беседы
         :return: 1
         """
-
-        result = await self._api_request(method_name="messages.editChat", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.editChat", parameters=parameters)
         return result
 
     async def get_by_conversation_message_id(self, peer_id: typing.Union[base.Integer, base.String],
@@ -183,8 +184,8 @@ class Messages(BaseMethod):
         if conversation_message_ids:
             conversation_message_ids = ",".join(conversation_message_ids)
         fields = ",".join(fields)
-
-        result = await self._api_request(method_name="messages.getByConversationMessageId", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.getByConversationMessageId", parameters=parameters)
         return result
 
     async def get_by_id(self, message_ids: typing.Union[typing.List, typing.Tuple],
@@ -206,8 +207,8 @@ class Messages(BaseMethod):
         extended = int(extended)
         if fields:
             fields = ",".join(fields)
-
-        result = await self._api_request(method_name="messages.getById", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.getById", parameters=parameters)
         return result
 
     async def get_chat(self, chat_id: typing.Union[base.Integer, base.String],
@@ -241,8 +242,8 @@ class Messages(BaseMethod):
             chat_ids = ",".join(chat_ids)
         if fields:
             fields = ",".join(fields)
-
-        result = await self._api_request(method_name="messages.getChat", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.getChat", parameters=parameters)
         return result
 
     async def get_chat_preview(self, link: base.String,
@@ -258,8 +259,8 @@ class Messages(BaseMethod):
         """
         if fields:
             fields = ",".join(fields)
-
-        result = await self._api_request(method_name="messages.getChatPreview", parameters=locals())
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name="messages.getChatPreview", parameters=parameters)
         return result
 
     async def send(self, user_id: typing.Union[base.Integer, base.String, None] = None,
@@ -315,5 +316,7 @@ class Messages(BaseMethod):
         if forward_messages:
             forward_messages = ",".join(forward_messages)
         dont_parse_links = int(dont_parse_links)
-        result = await self._api_request(method_name='messages.send', parameters=locals())
+        keyboard = prepare_arg(keyboard)
+        parameters = generate_payload(**locals())
+        result = await self._api_request(method_name='messages.send', parameters=parameters)
         return result
