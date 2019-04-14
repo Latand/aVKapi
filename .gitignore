@@ -4,3 +4,6 @@ config*
 venv/
 .idea/
 *.pyc
+myexamples/
+myexamples/main.py
+main*

@@ -32,6 +32,7 @@ class Dispatcher(DataMixin, ContextInstanceMixin):
 
         self.events_handler = Handler(self, middleware_key='event')
         self.message_handlers = Handler(self, middleware_key='message')
+        self.callback_query_handlers = Handler(self, middleware_key='message')
         self.errors_handlers = Handler(self, once=False, middleware_key='error')
 
         self.middleware = MiddlewareManager(self)
@@ -101,6 +102,39 @@ class Dispatcher(DataMixin, ContextInstanceMixin):
 
         return decorator
 
+    def register_callback_query_handler(self, callback, *custom_filters, state=None, run_task=None, **kwargs):
+        """
+        Register handler for callback query
+        Example:
+        .. code-block:: python3
+            dp.register_callback_query_handler(some_callback_handler, lambda callback_query: True)
+        :param callback:
+        :param state:
+        :param custom_filters:
+        :param run_task: run callback in task (no wait results)
+        :param kwargs:
+        """
+        self.callback_query_handlers.register(self._wrap_async_task(callback, run_task), filters_set)
+
+    def callback_query_handler(self, *custom_filters, state=None, run_task=None, **kwargs):
+        """
+        Decorator for callback query handler
+        Example:
+        .. code-block:: python3
+            @dp.callback_query_handler(lambda callback_query: True)
+            async def some_callback_handler(callback_query: types.CallbackQuery)
+        :param state:
+        :param custom_filters:
+        :param run_task: run callback in task (no wait results)
+        :param kwargs:
+        """
+
+        def decorator(callback):
+            self.register_callback_query_handler(callback, *custom_filters, state=state, run_task=run_task, **kwargs)
+            return callback
+
+        return decorator
+
     def async_task(self, func):
         """
         Execute handler as task and return None.
@@ -132,6 +166,7 @@ class Dispatcher(DataMixin, ContextInstanceMixin):
         if run_task:
             return self.async_task(callback)
         return callback
+
     #
     # def stop_polling(self):
     #     """
