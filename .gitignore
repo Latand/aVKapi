@@ -5,3 +5,5 @@ venv/
 .idea/
 *.pyc
 myexamples/
+myexamples/main.py
+myexamples/main.py
