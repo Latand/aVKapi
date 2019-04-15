@@ -10,13 +10,17 @@ from .middlewares import MiddlewareManager
 from ..types import Message, MessageType
 from ..utils import context
 from ..vk import VK
+import typing
+from ..utils.mixins import ContextInstanceMixin, DataMixin
+import itertools
+import asyncio
 
 EVENT_OBJECT = 'event_object'
 
 logger = logging.getLogger(__name__)
 
 
-class Dispatcher:
+class Dispatcher(DataMixin, ContextInstanceMixin):
     def __init__(self, vk, storage=None, loop=None):
         if loop is None:
             loop = vk.loop
@@ -28,6 +32,7 @@ class Dispatcher:
 
         self.events_handler = Handler(self, middleware_key='event')
         self.message_handlers = Handler(self, middleware_key='message')
+        self.callback_query_handlers = Handler(self, middleware_key='message')
         self.errors_handlers = Handler(self, once=False, middleware_key='error')
 
         self.middleware = MiddlewareManager(self)
@@ -97,6 +102,39 @@ class Dispatcher:
 
         return decorator
 
+    def register_callback_query_handler(self, callback, *custom_filters, state=None, run_task=None, **kwargs):
+        """
+        Register handler for callback query
+        Example:
+        .. code-block:: python3
+            dp.register_callback_query_handler(some_callback_handler, lambda callback_query: True)
+        :param callback:
+        :param state:
+        :param custom_filters:
+        :param run_task: run callback in task (no wait results)
+        :param kwargs:
+        """
+        self.callback_query_handlers.register(self._wrap_async_task(callback, run_task), filters_set)
+
+    def callback_query_handler(self, *custom_filters, state=None, run_task=None, **kwargs):
+        """
+        Decorator for callback query handler
+        Example:
+        .. code-block:: python3
+            @dp.callback_query_handler(lambda callback_query: True)
+            async def some_callback_handler(callback_query: types.CallbackQuery)
+        :param state:
+        :param custom_filters:
+        :param run_task: run callback in task (no wait results)
+        :param kwargs:
+        """
+
+        def decorator(callback):
+            self.register_callback_query_handler(callback, *custom_filters, state=state, run_task=run_task, **kwargs)
+            return callback
+
+        return decorator
+
     def async_task(self, func):
         """
         Execute handler as task and return None.
@@ -128,3 +166,95 @@ class Dispatcher:
         if run_task:
             return self.async_task(callback)
         return callback
+
+    #
+    # def stop_polling(self):
+    #     """
+    #     Break long-polling process.
+    #     :return:
+    #     """
+    #     if hasattr(self, '_polling') and self._polling:
+    #         logger.info('Stop polling...')
+    #         self._polling = False
+    #
+    # async def start_polling(self, timeout=20, relax=0.1, limit=None, reset_webhook=None,
+    #                         fast: typing.Optional[bool] = True):
+    #     """
+    #     Start long-polling
+    #     :param timeout:
+    #     :param relax:
+    #     :param limit:
+    #     :param reset_webhook:
+    #     :param fast:
+    #     :return:
+    #     """
+    #     if self._polling:
+    #         raise RuntimeError('Polling already started')
+    #
+    #     logger.info('Start polling.')
+    #
+    #     # context.set_value(MODE, LONG_POLLING)
+    #     Dispatcher.set_current(self)
+    #     Bot.set_current(self.bot)
+    #
+    #     if reset_webhook is None:
+    #         await self.reset_webhook(check=False)
+    #     if reset_webhook:
+    #         await self.reset_webhook(check=True)
+    #
+    #     self._polling = True
+    #     offset = None
+    #     try:
+    #         while self._polling:
+    #             try:
+    #                 updates = await self.bot.get_updates(limit=limit, offset=offset, timeout=timeout)
+    #             except:
+    #                 logger.exception('Cause exception while getting updates.')
+    #                 await asyncio.sleep(15)
+    #                 continue
+    #
+    #             if updates:
+    #                 logger.debug(f"Received {len(updates)} updates.")
+    #                 offset = updates[-1].update_id + 1
+    #
+    #                 self.loop.create_task(self._process_polling_updates(updates, fast))
+    #
+    #             if relax:
+    #                 await asyncio.sleep(relax)
+    #     finally:
+    #         self._close_waiter._set_result(None)
+    #         logger.warning('Polling is stopped.')
+    #
+    #
+    # async def reset_webhook(self, check=True) -> bool:
+    #     """
+    #     Reset webhook
+    #     :param check: check before deleting
+    #     :return:
+    #     """
+    #     if check:
+    #         wh = await self.bot.get_webhook_info()
+    #         if not wh.url:
+    #             return False
+    #
+    #     return await self.bot.delete_webhook()
+    #
+    # async def _process_polling_updates(self, updates, fast: typing.Optional[bool] = True):
+    #     """
+    #     Process updates received from long-polling.
+    #     :param updates: list of updates.
+    #     :param fast:
+    #     """
+    #     need_to_call = []
+    #     for responses in itertools.chain.from_iterable(await self.process_updates(updates, fast)):
+    #         for response in responses:
+    #             if not isinstance(response, BaseResponse):
+    #                 continue
+    #             need_to_call.append(response.execute_response(self.bot))
+    #     if need_to_call:
+    #         try:
+    #             asyncio.gather(*need_to_call)
+    #         except TelegramAPIError:
+    #             logger.exception('Cause exception while processing updates.')
+    #
+    #
